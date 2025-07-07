@@ -1,6 +1,6 @@
 import Product from '../models/Product.js';
 
-// ✅ Create Product (Admin only)
+// Create Product (Admin only)
 export const createProduct = async (req, res) => {
   try {
     const newProduct = new Product(req.body);
@@ -11,7 +11,7 @@ export const createProduct = async (req, res) => {
   }
 };
 
-// ✅ Get All Products with Search + Pagination
+//  Get All Products with Search + Pagination
 export const getProducts = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;      // current page number
@@ -46,7 +46,7 @@ export const getProducts = async (req, res) => {
   }
 };
 
-// ✅ Get Single Product by ID
+//  Get Single Product by ID
 export const getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -56,7 +56,7 @@ export const getProduct = async (req, res) => {
   }
 };
 
-// ✅ Update Product (Admin only)
+//  Update Product (Admin only)
 export const updateProduct = async (req, res) => {
   try {
     const updated = await Product.findByIdAndUpdate(
@@ -70,7 +70,7 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-// ✅ Delete Product (Admin only)
+//  Delete Product (Admin only)
 export const deleteProduct = async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
