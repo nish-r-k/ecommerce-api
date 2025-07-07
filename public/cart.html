@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Cart</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 0;
+      background: #f2f2f2;
+    }
+
+    header {
+      background: #222;
+      color: #fff;
+      padding: 20px 40px;
+      text-align: center;
+    }
+
+    .cart-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+
+    .cart-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-right: 20px;
+    }
+
+    .cart-item-details {
+      flex: 1;
+    }
+
+    .cart-item-details h3 {
+      margin: 0 0 8px;
+    }
+
+    .cart-item-details p {
+      margin: 4px 0;
+      color: #555;
+    }
+
+    .cart-item input[type="number"] {
+      width: 50px;
+      margin-right: 10px;
+    }
+
+    .cart-item button {
+      background: #dc3545;
+      border: none;
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .cart-item button:hover {
+      background: #b02a37;
+    }
+
+    .total {
+      text-align: right;
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+
+    .checkout-btn {
+      display: block;
+      margin: 30px auto 0;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .checkout-btn:hover {
+      background: #218838;
+    }
+
+    .empty {
+      text-align: center;
+      color: #555;
+      font-size: 18px;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My Shopping Cart</h1>
+  </header>
+
+  <div class="cart-container" id="cartContainer">
+   
+  </div>
+
+  <script>
+    const apiBase = 'http://localhost:5000/api';
+    const token = localStorage.getItem('token');
+
+    async function fetchCart() {
+      const res = await fetch(`${apiBase}/cart`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const cart = await res.json();
+      renderCart(cart);
+    }
+
+    function renderCart(cart) {
+      const container = document.getElementById('cartContainer');
+      container.innerHTML = '';
+
+      if (!cart || !cart.items || cart.items.length === 0) {
+        container.innerHTML = '<p class="empty">Your cart is empty.</p>';
+        return;
+      }
+
+      let total = 0;
+
+      cart.items.forEach(item => {
+        const product = item.product;
+        const itemTotal = product.price * item.quantity;
+        total += itemTotal;
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+
+        div.innerHTML = `
+          <img src="${product.imageUrl || 'https://via.placeholder.com/80'}" alt="${product.name}" />
+          <div class="cart-item-details">
+            <h3>${product.name}</h3>
+            <p>Price: Rs:${product.price.toFixed(2)}</p>
+            <p>
+              Quantity: 
+              <input type="number" value="${item.quantity}" min="1" onchange="updateItem('${product._id}', this.value)">
+              <button onclick="removeItem('${product._id}')">Remove</button>
+            </p>
+            <p>Subtotal: Rs:${itemTotal.toFixed(2)}</p>
+          </div>
+        `;
+
+        container.appendChild(div);
+      });
+
+      const totalDiv = document.createElement('div');
+      totalDiv.className = 'total';
+      totalDiv.textContent = `Total: Rs:${total.toFixed(2)}`;
+      container.appendChild(totalDiv);
+
+      const checkoutBtn = document.createElement('button');
+      checkoutBtn.className = 'checkout-btn';
+      checkoutBtn.textContent = 'Proceed to Checkout';
+      checkoutBtn.onclick = createOrderFromCart;
+      container.appendChild(checkoutBtn);
+    }
+
+    async function updateItem(productId, quantity) {
+      await fetch(`${apiBase}/cart/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ productId, quantity: parseInt(quantity) })
+      });
+      fetchCart();
+    }
+
+    async function removeItem(productId) {
+      await fetch(`${apiBase}/cart/remove`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ productId })
+      });
+      fetchCart();
+    }
+
+    async function createOrderFromCart() {
+      const res = await fetch(`${apiBase}/orders`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      alert('Order created successfully!');
+      window.location.href = 'orders.html'; // Optional
+    }
+
+    fetchCart();
+  </script>
+</body>
+</html>
