@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.use(protect); // Protect all routes
 
-router.post('/', createOrder); // POST /api/orders
+router.post('/', createOrder); 
 
 export default router;
